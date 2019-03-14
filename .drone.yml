@@ -95,7 +95,7 @@ steps:
   - |
     export IMAGE_ID=$(docker images -q $DRONE_BUILD_NUMBER-$DRONE_COMMIT_SHA)
     if [ -n $IMAGE_ID ]; then
-      docker rmi -f $(docker images -q $IMAGE_ID)
+      docker rmi -f $IMAGE_ID
     fi
   volumes:
   - name: docker

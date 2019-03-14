@@ -67,6 +67,8 @@ steps:
   - DOCKERHUB_REPO_PREFIX=$DRONE_REPO_NAMESPACE
   - DOCKERHUB_REPO_NAME=${DRONE_REPO_NAME#docker-}
   - echo "$DOCKERHUB_REPO_PREFIX AND $DOCKERHUB_REPO_NAME"
+  - ls -l /drone/src
+  - env
   - node /app/index.js
   when:
     ref:
@@ -81,6 +83,7 @@ steps:
   - |
     if [ -n "$MICROBADGER_WEBHOOK" ]; then
         apk --no-cache add curl
+        echo "Invoking MicroBadger hook..."
         curl -X POST --fail $MICROBADGER_WEBHOOK
     else
         echo "WARNING: MicroBadger webhook not defined!"

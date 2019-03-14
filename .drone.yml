@@ -90,10 +90,8 @@ steps:
 - name: cleanup
   image: docker:18
   commands:
-  - |
-    IMAGE_ID=$(docker images -q $DRONE_BUILD_NUMBER-$DRONE_COMMIT_SHA)
-    echo "Docker image ID to remove: ${IMAGE_ID:-none}"
-    test "$IMAGE_ID" == "" || docker rmi -f $IMAGE_ID
+  - IMAGE_ID=$(docker images -q $DRONE_BUILD_NUMBER-$DRONE_COMMIT_SHA)
+  - test "$IMAGE_ID" == "" || docker rmi -f $IMAGE_ID
   volumes:
   - name: docker
     path: /var/run/docker.sock

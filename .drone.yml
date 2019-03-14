@@ -17,7 +17,7 @@
 #
 
 kind: pipeline
-name: default 
+name: default
 
 steps:
 - name: get_tools
@@ -34,7 +34,7 @@ steps:
   - name: docker
     path: /var/run/docker.sock
 
-- name: push_image 
+- name: push_image
   image: docker:18
   environment:
     DOCKERHUB_USERNAME:
@@ -70,7 +70,7 @@ steps:
   - node /app/index.js
   when:
     ref:
-    - refs/tags/v* 
+    - refs/tags/v*
 
 - name: microbadger
   image: alpine:3.9

@@ -16,6 +16,7 @@
 #   - microbadger_webook: Microbadger webhook.
 #
 
+kind: pipeline
 name: default 
 
 steps:

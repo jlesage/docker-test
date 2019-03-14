@@ -41,6 +41,7 @@ steps:
     DOCKERHUB_PASSWORD:
       from_secret: dockerhub_password
   commands:
+  - apk --no-cache add bash
   - LATEST_TAG="$(./docker-mgmt-tools/get_docker_latest_tag_from_git_tag $DRONE_TAG)"
   - docker tag $DRONE_BUILD_NUMBER-$DRONE_COMMIT_SHA $DRONE_REPO_NAMESPACE/${DRONE_REPO_NAME#docker-}:$DRONE_TAG
   - docker tag $DRONE_BUILD_NUMBER-$DRONE_COMMIT_SHA $DRONE_REPO_NAMESPACE/${DRONE_REPO_NAME#docker-}:$LATEST_TAG 

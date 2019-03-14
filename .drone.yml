@@ -22,7 +22,7 @@ steps:
 - name: get_tools
   image: alpine:3.9
   commands:
-  - apk --no-cache add git bash
+  - apk --no-cache add git
   - git clone https://github.com/jlesage/docker-mgmt-tools
 
 - name: build
@@ -45,7 +45,7 @@ steps:
   - LATEST_TAG="$(./docker-mgmt-tools/get_docker_latest_tag_from_git_tag $DRONE_TAG)"
   - docker tag $DRONE_BUILD_NUMBER-$DRONE_COMMIT_SHA $DRONE_REPO_NAMESPACE/${DRONE_REPO_NAME#docker-}:$DRONE_TAG
   - docker tag $DRONE_BUILD_NUMBER-$DRONE_COMMIT_SHA $DRONE_REPO_NAMESPACE/${DRONE_REPO_NAME#docker-}:$LATEST_TAG 
-  - docker login -u "$DOCKERHUB_USERNAME" -p "$DOCKERHUB_PASSWORD"
+  - echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
   - docker push $DRONE_REPO_NAMESPACE/${DRONE_REPO_NAME#docker-}:$DRONE_TAG
   - docker push $DRONE_REPO_NAMESPACE/${DRONE_REPO_NAME#docker-}:$LATEST_TAG
   volumes:

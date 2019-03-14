@@ -66,8 +66,6 @@ steps:
   commands:
   - export DOCKERHUB_REPO_PREFIX="$DRONE_REPO_NAMESPACE"
   - export DOCKERHUB_REPO_NAME="${DRONE_REPO_NAME#docker-}"
-  - echo "$DOCKERHUB_REPO_PREFIX AND $DOCKERHUB_REPO_NAME"
-  - env
   - node /app/index.js
   when:
     ref:

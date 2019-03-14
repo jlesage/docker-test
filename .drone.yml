@@ -64,10 +64,9 @@ steps:
     DOCKERHUB_PASSWORD:
       from_secret: dockerhub_password
   commands:
-  - DOCKERHUB_REPO_PREFIX="$DRONE_REPO_NAMESPACE"
-  - DOCKERHUB_REPO_NAME="${DRONE_REPO_NAME#docker-}"
+  - export DOCKERHUB_REPO_PREFIX="$DRONE_REPO_NAMESPACE"
+  - export DOCKERHUB_REPO_NAME="${DRONE_REPO_NAME#docker-}"
   - echo "$DOCKERHUB_REPO_PREFIX AND $DOCKERHUB_REPO_NAME"
-  - ls -l /drone/src
   - env
   - node /app/index.js
   when:

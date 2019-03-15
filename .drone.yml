@@ -30,7 +30,6 @@ steps:
   image: alpine:3.9
   commands:
   - sed -i 's/org.label-schema.version="unknown"/org.label-schema.version="'${DRONE_TAG:1}'"/' Dockerfile
-  - cat Dockerfile
   when:
     ref:
     - refs/tags/v*

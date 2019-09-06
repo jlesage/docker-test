@@ -26,7 +26,7 @@ steps:
   commands:
   - echo -n "${DRONE_TAG}" >> .tags
   - echo "${DRONE_TAG}" | grep -q '-' || echo -n ",latest" >> .tags
-  - echo "Docker image tags: $(cat .tags)"
+  - echo -n "Docker image tags: `cat .tags`"
   when:
     ref:
     - refs/tags/v*

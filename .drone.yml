@@ -52,9 +52,9 @@ steps:
       from_secret: dockerhub_password
     build_args:
     - DOCKER_IMAGE_VERSION=${DRONE_TAG:1}
-    tags:
-    - ${DRONE_TAG}
-    - latest
+#    tags:
+#    - ${DRONE_TAG}
+#    - latest
   when:
     ref:
     - refs/tags/v*

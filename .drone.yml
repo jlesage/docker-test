@@ -24,8 +24,8 @@ steps:
 - name: set-tags
   image: alpine
   commands:
-  - echo -n "${DRONE_TAG}" >> .tags
-  - echo "${DRONE_TAG}" | grep -q '-' || echo -n ",latest" >> .tags
+  - printf "${DRONE_TAG}" >> .tags
+  - printf "${DRONE_TAG}" | grep -q '-' || printf ",latest" >> .tags
   when:
     ref:
     - refs/tags/v*

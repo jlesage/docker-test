@@ -20,7 +20,7 @@ kind: pipeline
 type: docker
 name: default
 
-#steps:
+steps:
 #- name: get_tools
 #  image: alpine:3.9
 #  commands:

@@ -39,6 +39,8 @@ steps:
   image: plugins/docker
   settings:
     repo: ${DRONE_REPO_NAMESPACE}/${DRONE_REPO_NAME##docker-}
+    build_args:
+    - DOCKER_IMAGE_VERSION=drone-ci"
     dry_run: true
   when:
     ref:
@@ -54,7 +56,7 @@ steps:
     password:
       from_secret: dockerhub_password
     build_args:
-    - "--label org.label-schema.version=${DRONE_TAG:1}"
+    - DOCKER_IMAGE_VERSION=${DRONE_TAG:1}"
     auto_tag: true
   when:
     ref:

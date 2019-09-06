@@ -36,28 +36,28 @@ steps:
     repo: ${DRONE_REPO_NAMESPACE}/${DRONE_REPO_NAME##docker-}
     build_args:
     - DOCKER_IMAGE_VERSION=drone-ci
-    dry_run: true
-  when:
-    ref:
-      exclude:
-      - refs/tags/v*
+#    dry_run: true
+#  when:
+#    ref:
+#      exclude:
+#      - refs/tags/v*
 
-- name: build-and-push
-  image: plugins/docker
-  settings:
-    repo: ${DRONE_REPO_NAMESPACE}/${DRONE_REPO_NAME##docker-}
-    username:
-      from_secret: dockerhub_username
-    password:
-      from_secret: dockerhub_password
-    build_args:
-    - DOCKER_IMAGE_VERSION=${DRONE_TAG:1}
-    tags:
-    - ${DRONE_TAG}
-    - latest
-  when:
-    ref:
-    - refs/tags/v*
+#- name: build-and-push
+#  image: plugins/docker
+#  settings:
+#    repo: ${DRONE_REPO_NAMESPACE}/${DRONE_REPO_NAME##docker-}
+#    username:
+#      from_secret: dockerhub_username
+#    password:
+#      from_secret: dockerhub_password
+#    build_args:
+#    - DOCKER_IMAGE_VERSION=${DRONE_TAG:1}
+#    tags:
+#    - ${DRONE_TAG}
+#    - latest
+#  when:
+#    ref:
+#    - refs/tags/v*
 
 - name: update-dockerhub-description
   image: jlesage/drone-push-readme

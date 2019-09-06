@@ -21,6 +21,15 @@ name: default
 
 steps:
 
+- name: set-tags
+  image: alpine
+  commands:
+  - env
+  - echo -n "${DRONE_TAG}" >> .tags
+  when:
+    ref:
+    - refs/tags/v*
+
 - name: build-only
   image: plugins/docker
   settings:

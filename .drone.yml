@@ -2,15 +2,14 @@
 # This is a generic Drone pipeline used to build and push Docker image.
 #
 # Assumptions:
-#   - User name of the Dockerhub repository is the same as the one of the
-#     Github repository.
-#   - Name of the Dockerhub repository is the same as the one of the Github
-#     repository, minus the 'docker-' prefix.  For example, if the name of
-#     Github repository is 'docker-myapp', the name of the Dockerhub repository
-#     is expected to be 'myapp'.
-#   - The Github repository has a README.md file.
+#   - User name of Dockerhub is the same as Github.
+#   - Name of the Dockerhub repository is the same as the Github repository,
+#     minus the 'docker-' prefix.  For example, if the name of Github repository
+#     is 'docker-myapp', the name of the Dockerhub repository is expected to be
+#     'myapp'.
+#   - The description to push to Dockerhub is contained in DOCKERHUB.md.
 #
-# Here are the secrets that are used:
+# The following secrets need to be defined:
 #   - dockerhub_username: The username used to login to Dockerhub.
 #   - dockerhub_password: The password used to login to Dockerhub.
 #   - microbadger_webook: Microbadger webhook.
@@ -21,21 +20,8 @@ type: docker
 name: default
 
 steps:
-#- name: get_tools
-#  image: alpine:3.9
-#  commands:
-#  - apk --no-cache add git
-#  - git clone https://github.com/jlesage/docker-mgmt-tools
 
-#- name: set_image_version
-#  image: alpine:3.9
-#  commands:
-#  - sed -i 's/org.label-schema.version="unknown"/org.label-schema.version="'${DRONE_TAG:1}'"/' Dockerfile
-#  when:
-#    ref:
-#    - refs/tags/v*
-
-- name: build-push
+- name: build-only
   image: plugins/docker
   settings:
     repo: ${DRONE_REPO_NAMESPACE}/${DRONE_REPO_NAME##docker-}
@@ -47,7 +33,7 @@ steps:
       exclude:
       - refs/tags/v*
 
-- name: build-tag
+- name: build-and-push
   image: plugins/docker
   settings:
     repo: ${DRONE_REPO_NAMESPACE}/${DRONE_REPO_NAME##docker-}
@@ -64,37 +50,7 @@ steps:
     ref:
     - refs/tags/v*
 
-#- name: build
-#  image: docker:18
-#  commands:
-#  - docker build --no-cache --pull -t $DRONE_BUILD_NUMBER-$DRONE_COMMIT_SHA .
-#  volumes:
-#  - name: docker
-#    path: /var/run/docker.sock
-
-#- name: push_image
-#  image: docker:18
-#  environment:
-#    DOCKERHUB_USERNAME:
-#      from_secret: dockerhub_username
-#    DOCKERHUB_PASSWORD:
-#      from_secret: dockerhub_password
-#  commands:
-#  - apk --no-cache add bash
-#  - LATEST_TAG="$(./docker-mgmt-tools/get_docker_latest_tag_from_git_tag $DRONE_TAG)"
-#  - docker tag $DRONE_BUILD_NUMBER-$DRONE_COMMIT_SHA $DRONE_REPO_NAMESPACE/${DRONE_REPO_NAME#docker-}:$DRONE_TAG
-#  - docker tag $DRONE_BUILD_NUMBER-$DRONE_COMMIT_SHA $DRONE_REPO_NAMESPACE/${DRONE_REPO_NAME#docker-}:$LATEST_TAG
-#  - echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-#  - docker push "$DRONE_REPO_NAMESPACE/${DRONE_REPO_NAME#docker-}:$DRONE_TAG"
-#  - docker push "$DRONE_REPO_NAMESPACE/${DRONE_REPO_NAME#docker-}:$LATEST_TAG"
-#  volumes:
-#  - name: docker
-#    path: /var/run/docker.sock
-#  when:
-#    ref:
-#    - refs/tags/v*
-
-- name: push_readme
+- name: update-dockerhub-description
   image: jlesage/drone-push-readme
   settings:
     repo: ${DRONE_REPO_NAMESPACE}/${DRONE_REPO_NAME##docker-}
@@ -117,16 +73,3 @@ steps:
     ref:
     - refs/tags/v*
 
-#- name: cleanup
-#  image: docker:18
-##  commands:
-#  - IMAGE_ID=$(docker images -q $DRONE_BUILD_NUMBER-$DRONE_COMMIT_SHA)
-#  - test "$IMAGE_ID" == "" || docker rmi -f $IMAGE_ID
-#  volumes:
-#  - name: docker
-#    path: /var/run/docker.sock
-
-#volumes:
-#- name: docker
-#  host:
-#    path: /var/run/docker.sock

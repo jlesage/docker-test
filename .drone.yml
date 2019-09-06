@@ -102,6 +102,7 @@ steps:
       from_secret: dockerhub_username
     password:
       from_secret: dockerhub_password
+    readme: DOCKERHUB.md
   when:
     ref:
     - refs/tags/v*

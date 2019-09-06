@@ -39,6 +39,8 @@ steps:
   image: plugins/docker
   settings:
     repo: ${DRONE_REPO_NAMESPACE}/${DRONE_REPO_NAME##docker-}
+    build_args:
+    - "--label org.label-schema.version=dev"
     dry_run: true
   when:
     ref:

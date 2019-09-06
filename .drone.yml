@@ -24,8 +24,9 @@ steps:
 - name: set-tags
   image: alpine
   commands:
-  - env
   - echo -n "${DRONE_TAG}" >> .tags
+  - echo "${DRONE_TAG}" | grep -q '-' || echo -n ",latest" >> .tags
+  - echo "Docker image tags: $(cat .tags)"
   when:
     ref:
     - refs/tags/v*

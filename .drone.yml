@@ -17,52 +17,78 @@
 #
 
 kind: pipeline
+type: docker
 name: default
 
-steps:
-- name: get_tools
-  image: alpine:3.9
-  commands:
-  - apk --no-cache add git
-  - git clone https://github.com/jlesage/docker-mgmt-tools
+#steps:
+#- name: get_tools
+#  image: alpine:3.9
+#  commands:
+#  - apk --no-cache add git
+#  - git clone https://github.com/jlesage/docker-mgmt-tools
 
-- name: set_image_version
-  image: alpine:3.9
-  commands:
-  - sed -i 's/org.label-schema.version="unknown"/org.label-schema.version="'${DRONE_TAG:1}'"/' Dockerfile
+#- name: set_image_version
+#  image: alpine:3.9
+#  commands:
+#  - sed -i 's/org.label-schema.version="unknown"/org.label-schema.version="'${DRONE_TAG:1}'"/' Dockerfile
+#  when:
+#    ref:
+#    - refs/tags/v*
+
+- name: build-push
+  image: plugins/docker
+  settings:
+    repo: ${DRONE_REPO_NAMESPACE}/${DRONE_REPO_NAME##docker-}
+    dry_run: true
   when:
     ref:
-    - refs/tags/v*
+      exclude:
+      - refs/tags/v*
 
-- name: build
-  image: docker:18
-  commands:
-  - docker build --no-cache --pull -t $DRONE_BUILD_NUMBER-$DRONE_COMMIT_SHA .
-  volumes:
-  - name: docker
-    path: /var/run/docker.sock
-
-- name: push_image
-  image: docker:18
-  environment:
-    DOCKERHUB_USERNAME:
+- name: build-tag
+  image: plugins/docker
+  settings:
+    repo: ${DRONE_REPO_NAMESPACE}/${DRONE_REPO_NAME##docker-}
+    username:
       from_secret: dockerhub_username
-    DOCKERHUB_PASSWORD:
+    password:
       from_secret: dockerhub_password
-  commands:
-  - apk --no-cache add bash
-  - LATEST_TAG="$(./docker-mgmt-tools/get_docker_latest_tag_from_git_tag $DRONE_TAG)"
-  - docker tag $DRONE_BUILD_NUMBER-$DRONE_COMMIT_SHA $DRONE_REPO_NAMESPACE/${DRONE_REPO_NAME#docker-}:$DRONE_TAG
-  - docker tag $DRONE_BUILD_NUMBER-$DRONE_COMMIT_SHA $DRONE_REPO_NAMESPACE/${DRONE_REPO_NAME#docker-}:$LATEST_TAG
-  - echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-  - docker push "$DRONE_REPO_NAMESPACE/${DRONE_REPO_NAME#docker-}:$DRONE_TAG"
-  - docker push "$DRONE_REPO_NAMESPACE/${DRONE_REPO_NAME#docker-}:$LATEST_TAG"
-  volumes:
-  - name: docker
-    path: /var/run/docker.sock
+    build_args:
+    - "--label org.label-schema.version=${DRONE_TAG:1}"
+    auto_tag: true
   when:
     ref:
     - refs/tags/v*
+
+#- name: build
+#  image: docker:18
+#  commands:
+#  - docker build --no-cache --pull -t $DRONE_BUILD_NUMBER-$DRONE_COMMIT_SHA .
+#  volumes:
+#  - name: docker
+#    path: /var/run/docker.sock
+
+#- name: push_image
+#  image: docker:18
+#  environment:
+#    DOCKERHUB_USERNAME:
+#      from_secret: dockerhub_username
+#    DOCKERHUB_PASSWORD:
+#      from_secret: dockerhub_password
+#  commands:
+#  - apk --no-cache add bash
+#  - LATEST_TAG="$(./docker-mgmt-tools/get_docker_latest_tag_from_git_tag $DRONE_TAG)"
+#  - docker tag $DRONE_BUILD_NUMBER-$DRONE_COMMIT_SHA $DRONE_REPO_NAMESPACE/${DRONE_REPO_NAME#docker-}:$DRONE_TAG
+#  - docker tag $DRONE_BUILD_NUMBER-$DRONE_COMMIT_SHA $DRONE_REPO_NAMESPACE/${DRONE_REPO_NAME#docker-}:$LATEST_TAG
+#  - echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+#  - docker push "$DRONE_REPO_NAMESPACE/${DRONE_REPO_NAME#docker-}:$DRONE_TAG"
+#  - docker push "$DRONE_REPO_NAMESPACE/${DRONE_REPO_NAME#docker-}:$LATEST_TAG"
+#  volumes:
+#  - name: docker
+#    path: /var/run/docker.sock
+#  when:
+#    ref:
+#    - refs/tags/v*
 
 - name: push_readme
   image: jlesage/drone-push-readme
@@ -81,20 +107,21 @@ steps:
   settings:
     urls:
       from_secret: microbadger_webhook
+  failure: ignore
   when:
     ref:
     - refs/tags/v*
 
-- name: cleanup
-  image: docker:18
-  commands:
-  - IMAGE_ID=$(docker images -q $DRONE_BUILD_NUMBER-$DRONE_COMMIT_SHA)
-  - test "$IMAGE_ID" == "" || docker rmi -f $IMAGE_ID
-  volumes:
-  - name: docker
-    path: /var/run/docker.sock
+#- name: cleanup
+#  image: docker:18
+##  commands:
+#  - IMAGE_ID=$(docker images -q $DRONE_BUILD_NUMBER-$DRONE_COMMIT_SHA)
+#  - test "$IMAGE_ID" == "" || docker rmi -f $IMAGE_ID
+#  volumes:
+#  - name: docker
+#    path: /var/run/docker.sock
 
-volumes:
-- name: docker
-  host:
-    path: /var/run/docker.sock
+#volumes:
+#- name: docker
+#  host:
+#    path: /var/run/docker.sock

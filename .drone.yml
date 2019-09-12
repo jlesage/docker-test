@@ -21,15 +21,6 @@ name: default
 
 steps:
 
-- name: set-tags
-  image: alpine
-  commands:
-  - printf "${DRONE_TAG}" >> .tags
-  - printf "${DRONE_TAG}" | grep -q '-' || printf ",latest" >> .tags
-  when:
-    ref:
-    - refs/tags/v*
-
 - name: build-only
   image: plugins/docker
   settings:
@@ -42,6 +33,17 @@ steps:
       exclude:
       - refs/tags/v*
 
+- name: set-docker-tags
+  image: alpine
+  commands:
+  # Always tag the Docker image with the Git tag (i.e. vX.Y.Z).
+  - printf "${DRONE_TAG}" >> .tags
+  # Tag the Docker image with with 'latest' only if not a prerelease.
+  - printf "${DRONE_TAG}" | grep -q '-' || printf ",latest" >> .tags
+  when:
+    ref:
+    - refs/tags/v*
+
 - name: build-and-push
   image: plugins/docker
   settings:
@@ -52,14 +54,11 @@ steps:
       from_secret: dockerhub_password
     build_args:
     - DOCKER_IMAGE_VERSION=${DRONE_TAG:1}
-#    tags:
-#    - ${DRONE_TAG}
-#    - latest
   when:
     ref:
     - refs/tags/v*
 
-- name: update-dockerhub-description
+- name: push-dockerhub-description
   image: jlesage/drone-push-readme
   settings:
     repo: ${DRONE_REPO_NAMESPACE}/${DRONE_REPO_NAME##docker-}

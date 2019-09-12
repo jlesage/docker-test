@@ -1,18 +1,5 @@
 #
-# This is a generic Drone pipeline used to build and push Docker image.
-#
-# Assumptions:
-#   - User name of Dockerhub is the same as Github.
-#   - Name of the Dockerhub repository is the same as the Github repository,
-#     minus the 'docker-' prefix.  For example, if the name of Github repository
-#     is 'docker-myapp', the name of the Dockerhub repository is expected to be
-#     'myapp'.
-#   - The description to push to Dockerhub is contained in DOCKERHUB.md.
-#
-# The following secrets need to be defined:
-#   - dockerhub_username: The username used to login to Dockerhub.
-#   - dockerhub_password: The password used to login to Dockerhub.
-#   - microbadger_webook: Microbadger webhook.
+# Drone pipeline to build Docker image.
 #
 
 kind: pipeline
@@ -58,7 +45,7 @@ steps:
     ref:
     - refs/tags/v*
 
-- name: push-dockerhub-description
+- name: push-dockerhub-readme
   image: jlesage/drone-push-readme
   settings:
     repo: ${DRONE_REPO_NAMESPACE}/${DRONE_REPO_NAME##docker-}
@@ -81,3 +68,18 @@ steps:
     ref:
     - refs/tags/v*
 
+- name: notification
+  image: plugins/pushover
+  settings:
+    token:
+      from_secret: pushover_token
+    user:
+      from_secret: pushover_user
+  failure: ignore
+  when:
+    event:
+      exclude:
+      - pull_request
+    status:
+    - success
+    - failure

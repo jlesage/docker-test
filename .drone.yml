@@ -71,7 +71,7 @@ steps:
 - name: notification
   image: plugins/pushover
   settings:
-    message: "{{ repo.owner }}/{{ repo.name }}#{{ truncate commit.sha 8 }} ({{ commit.branch }}) by {{ commit.author }} - {{ commit.message }}"
+    message: "{{ repo.owner }}/{{ repo.name }}#{{ truncate build.commit 8 }} ({{ build.branch }}) by {{ build.author }} - {{ build.message }}"
     token:
       from_secret: pushover_token
     user:

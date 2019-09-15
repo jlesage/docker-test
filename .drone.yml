@@ -11,7 +11,8 @@ steps:
 - name: test
   image: alpine
   commands:
-  - echo "COMMIT: ${DRONE_TAG##*-}"
+  - echo "COMMIT:"
+  - "echo ${DRONE_TAG##*-}"
   when:
     ref:
     - refs/tags/nightly-v*

@@ -8,7 +8,7 @@ name: default
 
 steps:
 
--name: test
+- name: test
   image: alpine
   commands:
   - echo "COMMIT: ${DRONE_TAG##*-}"

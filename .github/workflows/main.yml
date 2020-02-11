@@ -32,7 +32,7 @@ jobs:
         uses: jlesage/docker_buildx@multi-tags
         with:
           imageName: jlesage/test
-          tags: latest,1.1.1
+          tag: latest,1.1.1
           platform: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/386,linux/ppc64le,linux/s390x
           publish: ${{ startsWith(github.ref, 'refs/tags/') }}
           dockerHubUser: ${{ secrets.DOCKERHUB_USERNAME }}

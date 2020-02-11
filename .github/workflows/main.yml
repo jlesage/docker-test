@@ -75,7 +75,7 @@ jobs:
 
       - name: Docker Hub Description
         if: success() && startsWith(github.ref, 'refs/tags/')
-        uses: peter-evans/dockerhub-description@v2
+        uses: peter-evans/dockerhub-description@v2.1.0
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}

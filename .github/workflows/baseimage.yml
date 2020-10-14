@@ -32,7 +32,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Set up QEMU
+      - name: Setup BATS
+        uses: mig4/setup-bats@v1
+
+      - name: Setup QEMU
         uses: docker/setup-qemu-action@v1
 
       - name: Set up Docker Buildx

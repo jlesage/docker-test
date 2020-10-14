@@ -64,8 +64,13 @@ jobs:
           cache-to: type=local,dest=/tmp/.buildx-cache
           tags: ${{ steps.prep.outputs.tags }}
 
-#      - name: Test image
-#        TODO
+      - name: Test image
+        run: |
+          if [ -d tests ]; then
+            bats tests
+          else
+            echo "::warning::No tests to execute."
+          fi
 
       - name: Push to Dockerhub
         if: ${{ success() && startsWith(github.ref, 'refs/tags/') }}

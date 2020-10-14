@@ -63,6 +63,7 @@ jobs:
 
       - name: Inspect
         run: |
+          docker buildx images
           docker buildx imagetools inspect ${{ steps.prep.outputs.docker_image }}:github-ci
 
 #      - name: Test image

@@ -44,7 +44,7 @@ jobs:
         uses: docker/setup-buildx-action@v1
 
       - name: Login to DockerHub
-        uses: docker/login-action@v1 
+        uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -69,27 +69,26 @@ jobs:
           repository: ${{ steps.prep.outputs.docker_image }}
           readme-filepath: DOCKERHUB.md
 
-       - name: Pushover Notification
-         if: ${{ always() }}
-         # https://github.com/marketplace/actions/github-action-for-pushover-notifications
-         uses: desiderati/github-action-pushover@v1
-         with:
-           job-status: ${{ job.status }}
-           pushover-api-token: ${{ secrets.PUSHOVER_API_TOKEN }}
-           pushover-user-key: ${{ secrets.PUSHOVER_USER_KEY }}
+      - name: Pushover Notification
+        if: ${{ always() }}
+        # https://github.com/marketplace/actions/github-action-for-pushover-notifications
+        uses: desiderati/github-action-pushover@v1
+        with:
+          job-status: ${{ job.status }}
+          pushover-api-token: ${{ secrets.PUSHOVER_API_TOKEN }}
+          pushover-user-key: ${{ secrets.PUSHOVER_USER_KEY }}
 
-       - name: MicroBadger Webhook
-         if: ${{ success() && startsWith(github.ref, 'refs/tags/') }}
-         # https://github.com/marketplace/actions/webhook-action
-         uses: joelwmale/webhook-action@master
-         with:
-           url: ${{ secrets.MICROBADGER_WEBHOOK_URL }}
-
-
+      - name: MicroBadger Webhook
+        if: ${{ success() && startsWith(github.ref, 'refs/tags/') }}
+        # https://github.com/marketplace/actions/webhook-action
+        uses: joelwmale/webhook-action@master
+        with:
+          url: ${{ secrets.MICROBADGER_WEBHOOK_URL }}
 
 
 
-          
+
+
 #      - name: Checkout
 #        # https://github.com/marketplace/actions/checkout
 #        uses: actions/checkout@v2

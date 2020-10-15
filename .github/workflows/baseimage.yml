@@ -204,7 +204,7 @@ jobs:
         # https://github.com/marketplace/actions/github-action-for-pushover-notifications
         uses: desiderati/github-action-pushover@v1
         with:
-          job-status: ${{ job.status }}
+          job-status: ${{ env.WORKFLOW_CONCLUSION }}
           pushover-api-token: ${{ secrets.PUSHOVER_API_TOKEN }}
           pushover-user-key: ${{ secrets.PUSHOVER_USER_KEY }}
 

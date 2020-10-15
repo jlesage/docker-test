@@ -9,6 +9,30 @@ jobs:
   build-job:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        info:
+          - '{ "tag_prefix": "alpine-3.6",       "dockerfile": "Dockerfile.alpine",       "baseimage": "alpine:3.6" }'
+          - '{ "tag_prefix": "alpine-3.7",       "dockerfile": "Dockerfile.alpine",       "baseimage": "alpine:3.7" }'
+          - '{ "tag_prefix": "alpine-3.8",       "dockerfile": "Dockerfile.alpine",       "baseimage": "alpine:3.8" }'
+          - '{ "tag_prefix": "alpine-3.6-glibc", "dockerfile": "Dockerfile.alpine-glibc", "baseimage": "alpine:3.6" }'
+          - '{ "tag_prefix": "alpine-3.7-glibc", "dockerfile": "Dockerfile.alpine-glibc", "baseimage": "alpine:3.7" }'
+          - '{ "tag_prefix": "alpine-3.8-glibc", "dockerfile": "Dockerfile.alpine-glibc", "baseimage": "alpine:3.8" }'
+          - '{ "tag_prefix": "debian-8",         "dockerfile": "Dockerfile.debian",       "baseimage": "debian:jessie-slim" }'
+          - '{ "tag_prefix": "debian-9",         "dockerfile": "Dockerfile.debian",       "baseimage": "debian:stretch-slim" }'
+          - '{ "tag_prefix": "ubuntu-16.04",     "dockerfile": "Dockerfile.debian",       "baseimage": "ubuntu:xenial" }'
+          - '{ "tag_prefix": "ubuntu-18.04",     "dockerfile": "Dockerfile.debian",       "baseimage": "ubuntu:bionic" }'
+          - '{ "tag_prefix": "alpine-3.6",       "dockerfile": "Dockerfile.alpine",       "baseimage": "i386/alpine:3.6" }'
+          - '{ "tag_prefix": "alpine-3.7",       "dockerfile": "Dockerfile.alpine",       "baseimage": "i386/alpine:3.7" }'
+          - '{ "tag_prefix": "alpine-3.8",       "dockerfile": "Dockerfile.alpine",       "baseimage": "i386/alpine:3.8" }'
+          - '{ "tag_prefix": "alpine-3.6-glibc", "dockerfile": "Dockerfile.alpine-glibc", "baseimage": "i386/alpine:3.6" }'
+          - '{ "tag_prefix": "alpine-3.7-glibc", "dockerfile": "Dockerfile.alpine-glibc", "baseimage": "i386/alpine:3.7" }'
+          - '{ "tag_prefix": "alpine-3.8-glibc", "dockerfile": "Dockerfile.alpine-glibc", "baseimage": "i386/alpine:3.8" }'
+          - '{ "tag_prefix": "debian-8",         "dockerfile": "Dockerfile.debian",       "baseimage": "i386/debian:jessie-slim" }'
+          - '{ "tag_prefix": "debian-9",         "dockerfile": "Dockerfile.debian",       "baseimage": "i386/debian:stretch-slim" }'
+          - '{ "tag_prefix": "ubuntu-16.04",     "dockerfile": "Dockerfile.debian",       "baseimage": "i386/ubuntu:xenial" }'
+          - '{ "tag_prefix": "ubuntu-18.04",     "dockerfile": "Dockerfile.debian",       "baseimage": "i386/ubuntu:bionic" }'
+
     steps:
       - name: Prepare
         id: prep
@@ -18,7 +42,7 @@ jobs:
           if [[ $GITHUB_REF == refs/tags/v* ]]; then
             VERSION=${GITHUB_REF#refs/tags/}
           fi
-          TAGS="${DOCKER_IMAGE}:${VERSION}"
+          TAGS="${DOCKER_IMAGE}:${{ fromJSON(matrix.info).tag_prefix }}-${VERSION}"
           if [[ $VERSION =~ ^v[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
             MINOR=${VERSION%.*}
             MAJOR=${MINOR%.*}

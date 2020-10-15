@@ -39,8 +39,10 @@ jobs:
         run: |
           DOCKER_IMAGE=$GITHUB_REPOSITORY_OWNER/${GITHUB_REPOSITORY#*docker-}
           VERSION=github-ci
+          LABEL_VERSION=${VERSION}
           if [[ $GITHUB_REF == refs/tags/v* ]]; then
             VERSION=${GITHUB_REF#refs/tags/}
+            LABEL_VERSION=${VERSION:}
           fi
           TAGS="${DOCKER_IMAGE}:${{ fromJSON(matrix.info).tag_prefix }}-${VERSION}"
           if [[ $VERSION =~ ^v[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
@@ -50,6 +52,7 @@ jobs:
           fi
           echo ::set-output name=docker_image::${DOCKER_IMAGE}
           echo ::set-output name=version::${VERSION}
+          echo ::set-output name=label_version::${LABEL_VERSION}
           echo ::set-output name=tags::${TAGS}
           echo ::set-output name=build_date::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
 
@@ -90,7 +93,7 @@ jobs:
           tags: ${{ steps.prep.outputs.tags }}
           build-args: |
             BASEIMAGE=${{ fromJSON(matrix.info).baseimage }}
-            IMAGE_VERSION=${{ steps.prep.outputs.version }}
+            IMAGE_VERSION=${{ steps.prep.outputs.label_version }}
 
       - name: Test image
         run: |

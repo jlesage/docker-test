@@ -43,7 +43,7 @@ jobs:
           - '{ "tag_prefix": "debian-10",         "baseimage": "debian:buster-slim",  "platforms": "linux/amd64,linux/386,linux/arm/v5,linux/arm/v7,linux/arm64/v8" }'
           - '{ "tag_prefix": "ubuntu-16.04",      "baseimage": "ubuntu:xenial",       "platforms": "linux/amd64,linux/386,linux/arm/v7,linux/arm64/v8" }'
           - '{ "tag_prefix": "ubuntu-18.04",      "baseimage": "ubuntu:bionic",       "platforms": "linux/amd64,linux/386,linux/arm/v7,linux/arm64/v8" }'
-          - '{ "tag_prefix": "ubuntu-20.04",      "baseimage": "ubuntu:focal",        "platforms": "linux/amd64,linux/arm/v7,linux/arm64/v88" }'
+          - '{ "tag_prefix": "ubuntu-20.04",      "baseimage": "ubuntu:focal",        "platforms": "linux/amd64,linux/arm/v7,linux/arm64/v8" }'
 
     steps:
       - name: Prepare
@@ -137,10 +137,17 @@ jobs:
             BASEIMAGE=${{ fromJSON(matrix.info).baseimage }}
             IMAGE_VERSION=${{ steps.prep.outputs.label_version }}
 
+      - name: Inspect
+        run: |
+          docker buildx imagetools inspect localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci
+
       - name: Test image
         run: |
           if [ -d tests ]; then
-            bats tests
+            for IMG in $(docker buildx imagetools inspect localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci | grep "  Name:" | awk '{print $2}')
+            do
+              DOCKER_IMAGE=$IMG bats tests
+            done
           else
             echo "::warning::No tests to execute."
           fi
@@ -167,11 +174,6 @@ jobs:
             docker tag localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci $tag
             docker push $tag
           done
-
-      - name: Inspect
-        if: ${{ success() && startsWith(github.ref, 'refs/tags/') }}
-        run: |
-          docker buildx imagetools inspect ${{ env.DOCKER_IMAGE }}:${{ fromJSON(matrix.info).tag_prefix }}-${{ steps.prep.outputs.version }}
 
       - name: MicroBadger webhook
         if: ${{ success() && startsWith(github.ref, 'refs/tags/') }}

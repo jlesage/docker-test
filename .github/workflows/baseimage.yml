@@ -134,6 +134,13 @@ jobs:
           repository: ${{ steps.prep.outputs.docker_image }}
           readme-filepath: DOCKERHUB.md
 
+      - name: MicroBadger webhook
+        if: ${{ success() && startsWith(github.ref, 'refs/tags/') }}
+        # https://github.com/marketplace/actions/webhook-action
+        uses: joelwmale/webhook-action@master
+        with:
+          url: ${{ secrets.MICROBADGER_WEBHOOK_URL }}
+
       - name: Pushover notification
         if: ${{ always() }}
         # https://github.com/marketplace/actions/github-action-for-pushover-notifications
@@ -142,14 +149,6 @@ jobs:
           job-status: ${{ job.status }}
           pushover-api-token: ${{ secrets.PUSHOVER_API_TOKEN }}
           pushover-user-key: ${{ secrets.PUSHOVER_USER_KEY }}
-
-      - name: MicroBadger webhook
-        if: ${{ success() && startsWith(github.ref, 'refs/tags/') }}
-        # https://github.com/marketplace/actions/webhook-action
-        uses: joelwmale/webhook-action@master
-        with:
-          url: ${{ secrets.MICROBADGER_WEBHOOK_URL }}
-
 
 
 

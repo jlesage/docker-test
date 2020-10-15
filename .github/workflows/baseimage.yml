@@ -109,21 +109,7 @@ jobs:
           push: true
           file: ${{ fromJSON(matrix.info).dockerfile }}
           platforms: ${{ steps.prep.outputs.platforms }}
-          tags: localhost:5000/name/app:github-ci
-          build-args: |
-            BASEIMAGE=${{ fromJSON(matrix.info).baseimage }}
-            IMAGE_VERSION=${{ steps.prep.outputs.label_version }}
-
-      - name: Build image
-        uses: docker/build-push-action@v2
-        with:
-          push: false
-          load: true
-          file: ${{ fromJSON(matrix.info).dockerfile }}
-          #cache-from: type=local,src=/tmp/.buildx-cache
-          #cache-to: type=local,dest=/tmp/.buildx-cache
-          platforms: ${{ steps.prep.outputs.platforms }}
-          tags: ${{ steps.prep.outputs.tags }}
+          tags: localhost:5000/${{ steps.prep.outputs.docker_image }}:github-ci
           build-args: |
             BASEIMAGE=${{ fromJSON(matrix.info).baseimage }}
             IMAGE_VERSION=${{ steps.prep.outputs.label_version }}
@@ -136,10 +122,26 @@ jobs:
             echo "::warning::No tests to execute."
           fi
 
+#      - name: Build and push to Dockerhub
+#        uses: docker/build-push-action@v2
+#        with:
+#          push: true
+#          file: ${{ fromJSON(matrix.info).dockerfile }}
+#          #cache-from: type=local,src=/tmp/.buildx-cache
+#          #cache-to: type=local,dest=/tmp/.buildx-cache
+#          platforms: ${{ steps.prep.outputs.platforms }}
+#          tags: ${{ steps.prep.outputs.tags }}
+#          build-args: |
+#            BASEIMAGE=${{ fromJSON(matrix.info).baseimage }}
+#            IMAGE_VERSION=${{ steps.prep.outputs.label_version }}
+
+
       - name: Push to Dockerhub
         if: ${{ success() && startsWith(github.ref, 'refs/tags/') }}
         run: |
+          docker pull localhost:5000/${{ steps.prep.outputs.docker_image }}:github-ci
           for tag in $(echo "${{ steps.prep.outputs.tags }}" | tr ',' ' '); do
+            docker tag localhost:5000/${{ steps.prep.outputs.docker_image }}:github-ci $tag
             docker push $tag
           done
 

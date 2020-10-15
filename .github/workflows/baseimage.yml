@@ -43,7 +43,7 @@ jobs:
           - '{ "tag_prefix": "debian-10",         "baseimage": "debian:buster-slim",  "platforms": "linux/amd64,linux/386,linux/arm/v5,linux/arm/v7,linux/arm64/v8" }'
           - '{ "tag_prefix": "ubuntu-16.04",      "baseimage": "ubuntu:xenial",       "platforms": "linux/amd64,linux/386,linux/arm/v7,linux/arm64/v8" }'
           - '{ "tag_prefix": "ubuntu-18.04",      "baseimage": "ubuntu:bionic",       "platforms": "linux/amd64,linux/386,linux/arm/v7,linux/arm64/v8" }'
-          - '{ "tag_prefix": "ubuntu-20.04",      "baseimage": "ubuntu:focal",        "platforms": "linux/amd64,linux/arm/v7,linux/arm64/v88" }'
+          - '{ "tag_prefix": "ubuntu-20.04",      "baseimage": "ubuntu:focal",        "platforms": "linux/amd64,linux/arm/v7,linux/arm64/v8" }'
 
     steps:
       - name: Prepare
@@ -112,14 +112,6 @@ jobs:
         with:
           driver-opts: network=host
 
-#      - name: Cache Docker layers
-#        uses: actions/cache@v2
-#        with:
-#          path: /tmp/.buildx-cache
-#          key: ${{ runner.os }}-buildx-${{ github.sha }}
-#          restore-keys: |
-#            ${{ runner.os }}-buildx-
-
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
@@ -149,20 +141,6 @@ jobs:
           do
             env DOCKER_IMAGE=$IMG bats tests
           done
-
-#      - name: Build and push to Dockerhub
-#        uses: docker/build-push-action@v2
-#        with:
-#          push: true
-#          file: ${{ fromJSON(matrix.info).dockerfile }}
-#          #cache-from: type=local,src=/tmp/.buildx-cache
-#          #cache-to: type=local,dest=/tmp/.buildx-cache
-#          platforms: ${{ steps.prep.outputs.platforms }}
-#          tags: ${{ steps.prep.outputs.tags }}
-#          build-args: |
-#            BASEIMAGE=${{ fromJSON(matrix.info).baseimage }}
-#            IMAGE_VERSION=${{ steps.prep.outputs.label_version }}
-
 
       - name: Push to Dockerhub
         if: ${{ success() && startsWith(github.ref, 'refs/tags/') }}
@@ -202,78 +180,10 @@ jobs:
     if: ${{ always() }}
 
     steps:
-#      - name: Get workflow conclusion
-#        uses: technote-space/workflow-conclusion-action@v1
-
       - name: Pushover notification
         # https://github.com/marketplace/actions/github-action-for-pushover-notifications
         uses: desiderati/github-action-pushover@v1
         with:
-          #job-status: ${{ env.WORKFLOW_CONCLUSION }}
           job-status: ${{ needs.build.result }}
           pushover-api-token: ${{ secrets.PUSHOVER_API_TOKEN }}
           pushover-user-key: ${{ secrets.PUSHOVER_USER_KEY }}
-
-
-#      - name: Checkout
-#        # https://github.com/marketplace/actions/checkout
-#        uses: actions/checkout@v2
-#
-#      - name: Build Image
-#        # https://github.com/marketplace/actions/customizable-docker-buildx
-#        uses: ilteoood/docker_buildx@v1
-#        with:
-#          imageName: ${{ steps.prepare.outputs.docker_image_name }}
-#          tag: ${{ steps.prepare.outputs.docker_image_tags }}
-#          buildArg: DOCKER_IMAGE_VERSION=${{ steps.prepare.output.docker_image_version }}
-#          platform: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/386,linux/ppc64le,linux/s390x
-#          publish: ${{ startsWith(github.ref, 'refs/tags/') }}
-#          dockerHubUser: ${{ secrets.DOCKERHUB_USERNAME }}
-#          dockerHubPassword: ${{ secrets.DOCKERHUB_PASSWORD }}
-
-      # https://github.com/crazy-max/ghaction-docker-buildx
-#      - name: Set up Docker Buildx
-#        uses: crazy-max/ghaction-docker-buildx@v1
-#        with:
-#          version: latest
-
-#      - name: Docker Buildx (no push)
-#        run: |
-#          docker buildx build --platform ${{ steps.prepare.outputs.docker_platforms }} \
-#            --output "type=image,push=false" \
-#            --build-arg "BUILD_DATE=${{ steps.prepare.outputs.build_date }}" \
-#            --build-arg "VCS_REF=${GITHUB_SHA::8}" \
-#            --build-arg "VERSION=${{ steps.prepare.outputs.version }}" \
-#            --tag "${{ steps.prepare.outputs.docker_image }}:latest" \
-#            --tag "${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }}" \
-#            --file Dockerfile .
-
-#      - name: Docker Login
-#        if: success() && startsWith(github.ref, 'refs/tags/')
-#        env:
-#          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-#        run: |
-#          echo "${DOCKER_PASSWORD}" | docker login --username "${{ steps.prepare.outputs.docker_username }}" --password-stdin
-
-#      - name: Docker Buildx (push)
-#        if: success() && startsWith(github.ref, 'refs/tags/')
-#        run: |
-#          docker buildx build --platform ${{ steps.prepare.outputs.docker_platforms }} \
-#            --output "type=image,push=true" \
-#            --build-arg "BUILD_DATE=${{ steps.prepare.outputs.build_date }}" \
-#            --build-arg "VCS_REF=${GITHUB_SHA::8}" \
-#            --build-arg "VERSION=${{ steps.prepare.outputs.version }}" \
-#            --tag "${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }}" \
-#            --tag "${{ steps.prepare.outputs.docker_image }}:latest" \
-#            --file Dockerfile .
-
-#      - name: Docker Check Manifest
-#        if: success() && startsWith(github.ref, 'refs/tags/')
-#        run: |
-#          docker run --rm mplatform/mquery ${{ steps.prepare.outputs.docker_image_name }}:v${{ steps.prepare.outputs.idocker_image_version }}
-
-#      - name: Clear
-#        if: always() && startsWith(github.ref, 'refs/tags/')
-#        run: |
-#          rm -f ${HOME}/.docker/config.json
-

@@ -5,7 +5,7 @@ env:
 
 on:
   push:
-    branches: '*'
+    branches: **
     tags: v*.*.*
   pull_request:
 
@@ -50,7 +50,7 @@ jobs:
         id: prep
         run: |
           # Determine the Docker container version.
-          VERSION=github-ci
+          VERSION=unknown
           if [[ $GITHUB_REF == refs/tags/* ]]; then
             VERSION=${GITHUB_REF#refs/tags/}
           elif [[ $GITHUB_REF == refs/heads/* ]]; then
@@ -145,15 +145,10 @@ jobs:
 
       - name: Test image
         run: |
-          if [ -d tests ]; then
-            #for IMG in $(docker buildx imagetools inspect localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci | grep "  Name:" | awk '{print $2}')
-            for IMG in ${{ join(fromJSON(steps.inspect.outputs.raw).manifests.*.digest, ' ') }}
-            do
-              DOCKER_IMAGE=$IMG bats tests
-            done
-          else
-            echo "::warning::No tests to execute."
-          fi
+          for IMG in ${{ join(fromJSON(steps.inspect.outputs.raw).manifests.*.digest, ' ') }}
+          do
+            env DOCKER_IMAGE=$IMG bats tests
+          done
 
 #      - name: Build and push to Dockerhub
 #        uses: docker/build-push-action@v2
@@ -199,7 +194,6 @@ jobs:
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
           repository: ${{ env.DOCKER_IMAGE }}
           readme-filepath: DOCKERHUB.md
-
 
   notification:
     name: Notification

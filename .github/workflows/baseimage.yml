@@ -220,6 +220,9 @@ jobs:
           pushover-api-token: ${{ secrets.PUSHOVER_API_TOKEN }}
           pushover-user-key: ${{ secrets.PUSHOVER_USER_KEY }}
 
+      - name: Get workflow conclusion
+        uses: technote-space/workflow-conclusion-action@v1
+
 
 #      - name: Checkout
 #        # https://github.com/marketplace/actions/checkout

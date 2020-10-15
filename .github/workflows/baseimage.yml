@@ -2,7 +2,7 @@ name: Docker Baseimage CI
 
 on:
   push:
-    branches: *
+    branches: '*'
     tags: v*.*.*
     pull_request:
 

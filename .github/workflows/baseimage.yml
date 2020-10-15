@@ -88,9 +88,9 @@ jobs:
           #cache-from: type=local,src=/tmp/.buildx-cache
           #cache-to: type=local,dest=/tmp/.buildx-cache
           tags: ${{ steps.prep.outputs.tags }}
-          build-args:
-            - BASEIMAGE=${{ fromJSON(matrix.info).baseimage }}
-            - IMAGE_VERSION=${{ steps.prep.outputs.version }}
+          build-args: |
+            BASEIMAGE=${{ fromJSON(matrix.info).baseimage }}
+            IMAGE_VERSION=${{ steps.prep.outputs.version }}
 
       - name: Test image
         run: |

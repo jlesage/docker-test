@@ -117,7 +117,10 @@ jobs:
 
       - name: Push to Dockerhub
         if: ${{ success() && startsWith(github.ref, 'refs/tags/') }}
-        run: docker push ${{ steps.prep.outputs.tags }}
+        run: |
+          for tag in $(echo "${{ steps.prep.outputs.tags }}" | tr ',' ' '); do
+            docker push $tag
+          done
 
       - name: Inspect
         if: ${{ success() && startsWith(github.ref, 'refs/tags/') }}

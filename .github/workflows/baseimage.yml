@@ -84,9 +84,13 @@ jobs:
         with:
           push: false
           load: true
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache
+          file: ${{ fromJSON(matrix.info).dockerfile }}
+          #cache-from: type=local,src=/tmp/.buildx-cache
+          #cache-to: type=local,dest=/tmp/.buildx-cache
           tags: ${{ steps.prep.outputs.tags }}
+          build-args:
+            - BASEIMAGE=${{ fromJSON(matrix.info).baseimage }}
+            - IMAGE_VERSION=${{ steps.prep.outputs.version }}
 
       - name: Test image
         run: |
@@ -103,7 +107,7 @@ jobs:
       - name: Inspect
         if: ${{ success() && startsWith(github.ref, 'refs/tags/') }}
         run: |
-          docker buildx imagetools inspect ${{ steps.prep.outputs.docker_image }}:${{ steps.prep.outputs.versiom }}
+          docker buildx imagetools inspect ${{ steps.prep.outputs.docker_image }}:${{ steps.prep.outputs.version }}
 
       - name: Dockerhub description
         if: ${{ success() && startsWith(github.ref, 'refs/tags/') }}

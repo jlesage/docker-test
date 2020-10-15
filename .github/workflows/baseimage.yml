@@ -7,7 +7,8 @@ on:
     pull_request:
 
 jobs:
-  build-job:
+  build:
+    name: Build image
     runs-on: ubuntu-latest
 
     services:
@@ -39,7 +40,7 @@ jobs:
           - '{ "tag_prefix": "debian-10",         "baseimage": "debian:buster-slim",  "platforms": "linux/amd64,linux/386,linux/arm/v5,linux/arm/v7,linux/arm64/v8" }'
           - '{ "tag_prefix": "ubuntu-16.04",      "baseimage": "ubuntu:xenial",       "platforms": "linux/amd64,linux/386,linux/arm/v7,linux/arm64/v8" }'
           - '{ "tag_prefix": "ubuntu-18.04",      "baseimage": "ubuntu:bionic",       "platforms": "linux/amd64,linux/386,linux/arm/v7,linux/arm64/v8" }'
-          - '{ "tag_prefix": "ubuntu-20.04",      "baseimage": "ubuntu:focal",        "platforms": "linux/amd64,linux/386,linux/arm/v7,linux/arm64/v8" }'
+          - '{ "tag_prefix": "ubuntu-20.04",      "baseimage": "ubuntu:focal",        "platforms": "linux/amd64,linux/arm/v7,linux/arm64/v8" }'
 
     steps:
       - name: Prepare
@@ -188,6 +189,16 @@ jobs:
         with:
           url: ${{ secrets.MICROBADGER_WEBHOOK_URL }}
 
+  notification:
+    name: Notification
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+
+    steps:
+      - name: Get workflow conclusion
+        uses: technote-space/workflow-conclusion-action@v1
+
       - name: Pushover notification
         if: ${{ always() }}
         # https://github.com/marketplace/actions/github-action-for-pushover-notifications
@@ -196,8 +207,6 @@ jobs:
           job-status: ${{ job.status }}
           pushover-api-token: ${{ secrets.PUSHOVER_API_TOKEN }}
           pushover-user-key: ${{ secrets.PUSHOVER_USER_KEY }}
-
-
 
 
 #      - name: Checkout

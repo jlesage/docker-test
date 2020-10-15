@@ -107,7 +107,7 @@ jobs:
           push: true
           file: ${{ fromJSON(matrix.info).dockerfile }}
           platforms: ${{ steps.prep.outputs.platforms }}
-          tags: localhost:5000/name/app:github-ci
+          tags: 0.0.0.0:5000/name/app:github-ci
           build-args: |
             BASEIMAGE=${{ fromJSON(matrix.info).baseimage }}
             IMAGE_VERSION=${{ steps.prep.outputs.label_version }}

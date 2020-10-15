@@ -138,13 +138,16 @@ jobs:
             IMAGE_VERSION=${{ steps.prep.outputs.label_version }}
 
       - name: Inspect
+        id: inspect
         run: |
           docker buildx imagetools inspect localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci
+          echo ::set-output name=raw::$(docker buildx imagetools inspect --raw localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci)
 
       - name: Test image
         run: |
           if [ -d tests ]; then
-            for IMG in $(docker buildx imagetools inspect localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci | grep "  Name:" | awk '{print $2}')
+            #for IMG in $(docker buildx imagetools inspect localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci | grep "  Name:" | awk '{print $2}')
+            for IMG in ${{ join(fromJSON(steps.inspect.outputs.raw).manifests.*.digest, ' ') }}
             do
               DOCKER_IMAGE=$IMG bats tests
             done

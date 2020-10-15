@@ -208,19 +208,17 @@ jobs:
     if: ${{ always() }}
 
     steps:
-      - name: Get workflow conclusion
-        uses: technote-space/workflow-conclusion-action@v1
+#      - name: Get workflow conclusion
+#        uses: technote-space/workflow-conclusion-action@v1
 
       - name: Pushover notification
         # https://github.com/marketplace/actions/github-action-for-pushover-notifications
         uses: desiderati/github-action-pushover@v1
         with:
-          job-status: ${{ env.WORKFLOW_CONCLUSION }}
+          #job-status: ${{ env.WORKFLOW_CONCLUSION }}
+          job-status: ${{ needs.build.result }}
           pushover-api-token: ${{ secrets.PUSHOVER_API_TOKEN }}
           pushover-user-key: ${{ secrets.PUSHOVER_USER_KEY }}
-
-      - name: Get workflow conclusion
-        uses: technote-space/workflow-conclusion-action@v1
 
 
 #      - name: Checkout

@@ -139,8 +139,10 @@ jobs:
         run: |
           for SHA in ${{ join(fromJSON(steps.inspect.outputs.raw).manifests.*.digest, ' ') }}
           do
-            docker run --rm localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci@$SHA echo 'Working!'
-            env DOCKER_IMAGE=localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci@$SHA bats tests
+            DOCKER_IMAGE=localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci@$SHA
+            docker pull $DOCKER_IMAGE
+            echo "Testing $DOCKER_IMAGE..."
+            bats tests
           done
 
       - name: Build and push to Dockerhub

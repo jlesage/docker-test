@@ -133,25 +133,29 @@ jobs:
         id: inspect
         run: |
           docker buildx imagetools inspect localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci
-          DOCKER_CLI_EXPERIMENTAL=enabled docker manifest inspect -v localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci
+          #DOCKER_CLI_EXPERIMENTAL=enabled docker manifest inspect -v localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci
           echo ::set-output name=raw::$(docker buildx imagetools inspect --raw localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci)
 
       - name: Test image
         run: |
-          for IMG in ${{ join(fromJSON(steps.inspect.outputs.raw).manifests.*.digest, ' ') }}
+          for SHA in ${{ join(fromJSON(steps.inspect.outputs.raw).manifests.*.digest, ' ') }}
           do
-            env DOCKER_IMAGE=$IMG bats tests
+            env DOCKER_IMAGE=localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci@$SHA bats tests
           done
 
       - name: Push to Dockerhub
         if: ${{ success() && startsWith(github.ref, 'refs/tags/') }}
         run: |
+          DOCKER_CLI_EXPERIMENTAL=enabled
+          MANIFESTS=
           for TAG in $(echo "${{ steps.prep.outputs.tags }}" | tr ',' ' '); do
-            for IMG in ${{ join(fromJSON(steps.inspect.outputs.raw).manifests.*.digest, ' ') }}
+            for SHA in ${{ join(fromJSON(steps.inspect.outputs.raw).manifests.*.digest, ' ') }}
             do
-              docker pull $IMG
+              docker pull localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci@$SHA
+              docker tag localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci@$SHA ${TAG}@${SHA}
+              MANIFESTS="$MANIFESTS ${TAG}@${SHA}"
             done
-            docker manifest create $TAG ${{ join(fromJSON(steps.inspect.outputs.raw).manifests.*.digest, ' ') }}
+            docker manifest create $TAG $MANIFESTS
             docker manifest push $TAG
           done
 

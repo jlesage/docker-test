@@ -3,6 +3,8 @@ FROM alpine:3.7
 # Docker image version is provided via build arg.
 ARG DOCKER_IMAGE_VERSION=unknown
 
+RUN echo "Dockerfile build step!"
+
 # Metadata.
 LABEL \
       org.label-schema.name="test" \

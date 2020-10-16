@@ -133,7 +133,6 @@ jobs:
         id: inspect
         run: |
           docker buildx imagetools inspect localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci
-          #DOCKER_CLI_EXPERIMENTAL=enabled docker manifest inspect -v localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci
           echo ::set-output name=raw::$(docker buildx imagetools inspect --raw localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci)
 
       - name: Test image
@@ -144,6 +143,13 @@ jobs:
           done
 
       - name: Build and push to Dockerhub
+        # NOTE: The `--load` option of `buildx` only works with a single
+        #       platform.  Thus, we cannot build the image with `--load`, test
+        #       the image and then `docker push` it.  We need to build the image
+        #       twice, with different tags.  The second build should however
+        #       be very fast because of cache.  See:
+        #         - https://github.com/docker/buildx/issues/59
+        #         - https://github.com/docker/build-push-action/issues/132
         if: ${{ success() && startsWith(github.ref, 'refs/tags/') }}
         uses: docker/build-push-action@v2
         with:
@@ -154,22 +160,6 @@ jobs:
           build-args: |
             BASEIMAGE=${{ fromJSON(matrix.info).baseimage }}
             IMAGE_VERSION=${{ steps.prep.outputs.label_version }}
-
-#      - name: Push to Dockerhub
-#        if: ${{ success() && startsWith(github.ref, 'refs/tags/') }}
-#        run: |
-#          DOCKER_CLI_EXPERIMENTAL=enabled
-#          MANIFESTS=
-#          for TAG in $(echo "${{ steps.prep.outputs.tags }}" | tr ',' ' '); do
-#            for SHA in ${{ join(fromJSON(steps.inspect.outputs.raw).manifests.*.digest, ' ') }}
-#            do
-#              docker pull localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci@$SHA
-#              docker tag localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci@$SHA ${TAG}@${SHA}
-#              MANIFESTS="$MANIFESTS ${TAG}@${SHA}"
-#            done
-#            docker manifest create $TAG $MANIFESTS
-#            docker manifest push $TAG
-#          done
 
       - name: MicroBadger webhook
         if: ${{ success() && startsWith(github.ref, 'refs/tags/') }}

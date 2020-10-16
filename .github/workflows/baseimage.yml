@@ -143,21 +143,33 @@ jobs:
             env DOCKER_IMAGE=localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci@$SHA bats tests
           done
 
-      - name: Push to Dockerhub
+      - name: Build and push to Dockerhub
         if: ${{ success() && startsWith(github.ref, 'refs/tags/') }}
-        run: |
-          DOCKER_CLI_EXPERIMENTAL=enabled
-          MANIFESTS=
-          for TAG in $(echo "${{ steps.prep.outputs.tags }}" | tr ',' ' '); do
-            for SHA in ${{ join(fromJSON(steps.inspect.outputs.raw).manifests.*.digest, ' ') }}
-            do
-              docker pull localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci@$SHA
-              docker tag localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci@$SHA ${TAG}@${SHA}
-              MANIFESTS="$MANIFESTS ${TAG}@${SHA}"
-            done
-            docker manifest create $TAG $MANIFESTS
-            docker manifest push $TAG
-          done
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          file: ${{ steps.prep.outputs.dockerfile }}
+          platforms: ${{ fromJSON(matrix.info).platforms }}
+          tags: ${{ steps.prep.outputs.tags }}
+          build-args: |
+            BASEIMAGE=${{ fromJSON(matrix.info).baseimage }}
+            IMAGE_VERSION=${{ steps.prep.outputs.label_version }}
+
+#      - name: Push to Dockerhub
+#        if: ${{ success() && startsWith(github.ref, 'refs/tags/') }}
+#        run: |
+#          DOCKER_CLI_EXPERIMENTAL=enabled
+#          MANIFESTS=
+#          for TAG in $(echo "${{ steps.prep.outputs.tags }}" | tr ',' ' '); do
+#            for SHA in ${{ join(fromJSON(steps.inspect.outputs.raw).manifests.*.digest, ' ') }}
+#            do
+#              docker pull localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci@$SHA
+#              docker tag localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci@$SHA ${TAG}@${SHA}
+#              MANIFESTS="$MANIFESTS ${TAG}@${SHA}"
+#            done
+#            docker manifest create $TAG $MANIFESTS
+#            docker manifest push $TAG
+#          done
 
       - name: MicroBadger webhook
         if: ${{ success() && startsWith(github.ref, 'refs/tags/') }}

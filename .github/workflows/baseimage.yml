@@ -133,7 +133,7 @@ jobs:
         id: inspect
         run: |
           docker buildx imagetools inspect localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci
-          docker manifest inspect -v localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci
+          DOCKER_CLI_EXPERIMENTAL=enabled docker manifest inspect -v localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci
           echo ::set-output name=raw::$(docker buildx imagetools inspect --raw localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci)
 
       - name: Test image

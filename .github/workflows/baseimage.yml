@@ -139,8 +139,7 @@ jobs:
         run: |
           for IMG in ${{ join(fromJSON(steps.inspect.outputs.raw).manifests.*.digest, ' ') }}
           do
-            bats tests
-            #env DOCKER_IMAGE=$IMG bats tests
+            env DOCKER_IMAGE=$IMG bats tests
           done
 
       - name: Push to Dockerhub

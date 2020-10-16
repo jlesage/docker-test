@@ -145,10 +145,13 @@ jobs:
       - name: Push to Dockerhub
         if: ${{ success() && startsWith(github.ref, 'refs/tags/') }}
         run: |
-          docker pull localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci
-          for tag in $(echo "${{ steps.prep.outputs.tags }}" | tr ',' ' '); do
-            docker tag localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci $tag
-            docker push $tag
+          for TAG in $(echo "${{ steps.prep.outputs.tags }}" | tr ',' ' '); do
+            for IMG in ${{ join(fromJSON(steps.inspect.outputs.raw).manifests.*.digest, ' ') }}
+            do
+              docker pull $IMG
+            done
+            docker manifest create $TAG ${{ join(fromJSON(steps.inspect.outputs.raw).manifests.*.digest, ' ') }}
+            docker manifest push $TAG
           done
 
       - name: MicroBadger webhook

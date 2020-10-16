@@ -140,8 +140,8 @@ jobs:
           for SHA in ${{ join(fromJSON(steps.inspect.outputs.raw).manifests.*.digest, ' ') }}
           do
             DOCKER_IMAGE=localhost:5000/${{ env.DOCKER_IMAGE }}:github-ci@$SHA
-            docker pull $DOCKER_IMAGE
             echo "Testing $DOCKER_IMAGE..."
+            docker pull $DOCKER_IMAGE
             bats tests
           done
 

@@ -1,12 +1,14 @@
 ARG BASEIMAGE=unknown
 
+ARG TARGETPLATFORM
+
 # Pull base image.
 FROM ${BASEIMAGE}
 
 # Docker image version is provided via build arg.
 ARG DOCKER_IMAGE_VERSION=unknown
 
-RUN echo "Dockerfile build step!"
+RUN echo "Dockerfile build step! $TARGETPLATFORM"
 
 # Metadata.
 LABEL \

@@ -1,9 +1,11 @@
 FROM alpine:3.7
 
+ARG TARGETPLATFORM
+
 # Docker image version is provided via build arg.
 ARG DOCKER_IMAGE_VERSION=unknown
 
-RUN echo "Dockerfile build step!"
+RUN echo "Dockerfile build step! $TARGETPLATFORM"
 
 # Metadata.
 LABEL \

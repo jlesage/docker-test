@@ -1,7 +1,7 @@
 name: Docker Baseimage CI
 
 env:
-  DOCKER_IMAGE: jlesage/baseimage
+  DOCKER_IMAGE: jlesage/test
 
 on:
   push:

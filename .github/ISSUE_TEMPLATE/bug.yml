@@ -29,7 +29,7 @@ body:
       description: |
         Provide details about the host running the container.
         Examples:
-          - Operating system (e.g. Ubuntu, unRAID, TrueNAS, openmediavault, unRAID, etc).
+          - Operating system (e.g. Ubuntu, Windows, TrueNAS, openmediavault, unRAID, etc).
           - Version of the operating system.
           - CPU architecture (x86-64, arm, arm64, etc).
           - Model of the device, if applicable (e.g. Raspberry Pi 4B, Synology DS418, QNAP TS-364, etc).
@@ -61,7 +61,7 @@ body:
         Examples:
           - The `docker run` command used.
           - The compose file used.
-          - Screenshots from the management tool UI (e.g. Portainer, unRAID, etc) showing container settings.
+          - Screenshots of the management tool UI (e.g. Portainer, unRAID, etc) showing container settings.
     validations:
       required: true
   - type: textarea

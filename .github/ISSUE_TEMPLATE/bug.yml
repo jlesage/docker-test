@@ -29,15 +29,24 @@ body:
       description: |
         Provide details about the host running the container.
         Examples:
-          - The operating system version (e.g. Ubuntu 22.04).
+          - Operating system (e.g. Ubuntu, unRAID, TrueNAS, openmediavault, unRAID, etc).
+          - Version of the operating system.
           - CPU architecture (x86-64, arm, arm64, etc).
           - Model of the device, if applicable (e.g. Raspberry Pi 4B, Synology DS418, QNAP TS-364, etc).
           - The Docker version (output of `docker version`).
-          - Indicate if a network share is mapped to a folder of the container.
-          - Browser and OS used to access the application's UI.
-          - Anything else specific to your environment.
+          - Anything else specific to your environment.  Examples:
+            - Network share (NFS, CIFS) mapped to the container.
+            - Docker running in LXC container.
+            - etc.
+          - If applicable, how the UI provided by the container is access:
+            - Browser (Chrome, Firefox, Edge, etc).
+            - Version of the browser.
+            - OS of the browser.
+            - Is the container accessed through a reverse proxy.
+            - etc.
       value: |
           - OS:
+          - OS version:
           - CPU:
           - Docker version:
           - Device model:

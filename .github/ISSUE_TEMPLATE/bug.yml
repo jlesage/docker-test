@@ -47,19 +47,19 @@ body:
   - type: textarea
     attributes:
       label: Container creation
-      description: How did you create the container ?
-      placeholder: |
+      description: |
+        How did you create the container ?
         Examples:
-          - Your `docker run` command.
+          - The `docker run` command used.
           - The compose file used.
-          - Screenshots of the container management tool used.
+          - Screenshots from the management tool (e.g. Portainer, unRAID, erc) showing container settings.
     validations:
       required: true
   - type: textarea
     id: container-log
     attributes:
       label: Container log
-      description: The output of `docker logs <container name>`.
+      description: Please copy/paste the output of `docker logs <container name>`.
       render: text
     validations:
       required: true
@@ -69,7 +69,7 @@ body:
       label: Container inspect
       description: |
         If the container is running, please provide the output of `docker inspect <container name>`.
-        Attention: If you defined a password, secret or any sensitive information via environment variables, make sure to remove them from the output.
+        **Attention**: If you defined passwords, secrets or any sensitive information via environment variables, make sure to remove them from the output.
       render: text
     validations:
       required: false

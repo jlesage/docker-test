@@ -68,7 +68,8 @@ body:
     attributes:
       label: Container inspect
       description: |
-        If the container is running, please provide the output of `docker inspect <container name>`.  Attention: If you defined any password, secret or private information via environment variables, make sure to remove them from the output.
+        If the container is running, please provide the output of `docker inspect <container name>`.
+        Attention: If you defined any password, secret or private information via environment variables, make sure to remove them from the output.
       render: text
     validations:
       required: false

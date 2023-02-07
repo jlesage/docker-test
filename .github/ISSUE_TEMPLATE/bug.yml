@@ -1,0 +1,73 @@
+name: Bug Report
+description: File a bug report
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+  - type: textarea
+    attributes:
+      label: Current Behavior
+      description: A concise description of what you're experiencing.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Expected Behavior
+      description: A concise description of what you expected to happen.
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Steps To Reproduce
+      description: Steps to reproduce the behavior.
+      placeholder: |
+        1. In this environment...
+        2. With this config...
+        3. Run '...'
+        4. See error...
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Environment
+      description: |
+        Provide some details about the host running the container.
+        Examples:
+          - The operating system version (e.g. Ubuntu 22.04)
+          - The Docker version (output of `docker version)
+          - Model of the NAS (e.g. Synology DS418, QNAP TS-364, etc)
+      value: |
+          - OS:
+          - Docker version:
+          - Device model:
+      render: markdown
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Container creation
+      description: How did you create the container ?
+      placeholder: |
+        Examples:
+          - Your `docker run` command.
+          - The compose file used.
+          - Screenshots of the container management tool used.
+    validations:
+      required: true
+  - type: textarea
+    id: container-log
+    attributes:
+      label: Container log
+      description: The output of `docker logs <container name>`.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: container-inspect
+    attributes:
+      label: Container inspect
+      description: If the container is running, please provide the output of `docker inspect <container name>`.  Attention: If you defined any password, secret or private information via environment variables, make sure to remove them from the output.
+      render: text
+    validations:
+      required: false

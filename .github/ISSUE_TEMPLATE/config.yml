@@ -1,5 +1,5 @@
 blank_issues_enabled: false
 contact_links:
   - name: Ask a question, discuss
-    url: https://github.com/jlesage/docket-test/discussions
+    url: https://github.com/jlesage/docker-test/discussions
     about: Get help using this Docker container.

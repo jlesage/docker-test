@@ -2,4 +2,4 @@ blank_issues_enabled: false
 contact_links:
   - name: Ask a question, discuss
     url: https://github.com/jlesage/docket-test/discussions
-    about: Get help using this Docker container
+    about: Get help using this Docker container.

@@ -5,4 +5,4 @@ contact_links:
     about: Get help using this Docker container.
   - name: Documentation
     url: https://github.com/jlesage/docker-test#readme
-    about: Documentatio about this Docker container.
+    about: Documentation about this Docker container.

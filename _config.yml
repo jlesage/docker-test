@@ -1,1 +1,4 @@
 remote_theme: pages-themes/minimal@v0.2.0
+title: This is the title of the site
+description: This is the description of the site.
+show_downloads: false

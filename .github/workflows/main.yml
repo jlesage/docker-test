@@ -1,95 +1,160 @@
-name: Docker Container Image Build
+name: Docker image CI/CD
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOCKER_IMAGE_NAME: jlesage/test
+  PLATFORMS: linux/amd64
 
 on:
   push:
-    branches: master
-    tags: v*
+    branches: '*'
+    tags:
+      - v[0-9][0-9].[0-9][0-9].[0-9]+
+      - v[0-9][0-9].[0-9][0-9].[0-9]+-pre.[0-9]+
+  pull_request:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: Build image
+    runs-on: ubuntu-20.04
+
     steps:
-      - name: Prepare
-        id: prepare
-        run: |
-          if [[ $GITHUB_REF == refs/tags/* ]]; then
-            TAG=${GITHUB_REF#refs/tags/}
-            echo ::set-output name=tag_name::${TAG}
-            echo ::set-output name=version::${TAG%-*}
-          else
-            echo ::set-output name=version::snapshot
-          fi
-          echo ::set-output name=build_date::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
-          echo ::set-output name=docker_platforms::linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/386,linux/ppc64le,linux/s390x
-          echo ::set-output name=docker_username::jlesage
-          echo ::set-output name=docker_image::jlesage/test
-
-      # https://github.com/actions/checkout
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Build Image
-        uses: jlesage/docker_buildx@multi-tags
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@main
         with:
-          imageName: ${{ steps.prepare.outputs.docker_image }}
-          tag: latest,1.1.1
-          platform: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/386,linux/ppc64le,linux/s390x
-          publish: ${{ startsWith(github.ref, 'refs/tags/') }}
-          dockerHubUser: ${{ secrets.DOCKERHUB_USERNAME }}
-          dockerHubPassword: ${{ secrets.DOCKERHUB_PASSWORD }}
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: false
 
-      # https://github.com/crazy-max/ghaction-docker-buildx
-#      - name: Set up Docker Buildx
-#        uses: crazy-max/ghaction-docker-buildx@v1
-#        with:
-#          version: latest
-
-#      - name: Docker Buildx (no push)
-#        run: |
-#          docker buildx build --platform ${{ steps.prepare.outputs.docker_platforms }} \
-#            --output "type=image,push=false" \
-#            --build-arg "BUILD_DATE=${{ steps.prepare.outputs.build_date }}" \
-#            --build-arg "VCS_REF=${GITHUB_SHA::8}" \
-#            --build-arg "VERSION=${{ steps.prepare.outputs.version }}" \
-#            --tag "${{ steps.prepare.outputs.docker_image }}:latest" \
-#            --tag "${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }}" \
-#            --file Dockerfile .
-
-#      - name: Docker Login
-#        if: success() && startsWith(github.ref, 'refs/tags/')
-#        env:
-#          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-#        run: |
-#          echo "${DOCKER_PASSWORD}" | docker login --username "${{ steps.prepare.outputs.docker_username }}" --password-stdin
-
-#      - name: Docker Buildx (push)
-#        if: success() && startsWith(github.ref, 'refs/tags/')
-#        run: |
-#          docker buildx build --platform ${{ steps.prepare.outputs.docker_platforms }} \
-#            --output "type=image,push=true" \
-#            --build-arg "BUILD_DATE=${{ steps.prepare.outputs.build_date }}" \
-#            --build-arg "VCS_REF=${GITHUB_SHA::8}" \
-#            --build-arg "VERSION=${{ steps.prepare.outputs.version }}" \
-#            --tag "${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }}" \
-#            --tag "${{ steps.prepare.outputs.docker_image }}:latest" \
-#            --file Dockerfile .
-
-      - name: Docker Hub Description
-        if: success() && startsWith(github.ref, 'refs/tags/')
-        uses: peter-evans/dockerhub-description@v2.1.0
-        env:
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
-          DOCKERHUB_REPOSITORY: jlesage/test
-          README_FILEPATH: DOCKERHUB.md
-
-      - name: Docker Check Manifest
-        if: always() && startsWith(github.ref, 'refs/tags/')
+      - name: Prepare
+        id: prep
         run: |
-          docker run --rm mplatform/mquery ${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }}
+          # Determine the Docker container version.
+          VERSION=unknown
+          if [[ $GITHUB_REF =~ refs/tags/* ]]; then
+            # Git tag pushed: use tag as the version.
+            VERSION=${GITHUB_REF#refs/tags/}
+          elif [[ $GITHUB_REF =~ refs/heads/* ]]; then
+            # Git commit pushed: use the commit SHA as the version.
+            VERSION=${GITHUB_SHA::8}
+          elif [[ $GITHUB_REF =~ refs/pull/* ]]; then
+            # Pull request: use PR number as the version.
+            VERSION=pr-${{ github.event.number }}
+          else
+            echo "::error::Unexpected GITHUB_REF: $GITHUB_REF"
+            exit 1
+          fi
+          # Determine the version to put in container label.
+          LABEL_VERSION=${VERSION}
+          if [[ $GITHUB_REF =~ refs/tags/* ]]; then
+            # Do not include the starting 'v' of the version.
+            LABEL_VERSION=${VERSION:1}
+          fi
+          # Determine the Docker container tags.
+          TAGS="${{ env.DOCKER_IMAGE_NAME }}:${VERSION}"
+          if [[ $GITHUB_REF =~ refs/tags/* ]]; then
+            TAGS="$TAGS,${{ env.DOCKER_IMAGE_NAME }}:latest"
+          fi
+          TAGS="$TAGS,$(echo $TAGS | tr ',' '\n' | sed 's|^|ghcr.io/|' | tr '\n' ',')"
+          # Determine the release type.
+          if [[ $GITHUB_REF =~ refs/tags/* ]]; then
+              IS_RELEASE=yes
+              if [[ $GITHUB_REF =~ -pre\.[0-9]+ ]]; then
+                  RELEASE_TYPE="pre"
+              else
+                  RELEASE_TYPE="standard"
+              fi
+          else
+              IS_RELEASE=no
+              RELEASE_TYPE="n/a"
+          fi
+          # Print results.
+          echo "::group::Results"
+          echo "Github reference: $GITHUB_REF"
+          echo "Release: $IS_RELEASE"
+          echo "Release type: $RELEASE_TYPE"
+          echo "Docker container version: $VERSION"
+          echo "Docker container version label: $LABEL_VERSION"
+          echo "Docker container tag(s): $TAGS"
+          echo "::endgroup::"
+          # Export outputs.
+          echo "is_release=${IS_RELEASE}" >> $GITHUB_OUTPUT
+          echo "release_type=${RELEASE_TYPE}" >> $GITHUB_OUTPUT
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "label_version=${LABEL_VERSION}" >> $GITHUB_OUTPUT
+          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+          #echo "build_date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
 
-#      - name: Clear
-#        if: always() && startsWith(github.ref, 'refs/tags/')
-#        run: |
-#          rm -f ${HOME}/.docker/config.json
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm,arm64,ppc64le,mips64,s390x
 
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to DockerHub
+        if: ${{ steps.prep.outputs.is_release == 'yes' }}
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Login to GitHub Container Registry
+        if: ${{ steps.prep.outputs.is_release == 'yes' }}
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          push: ${{ steps.prep.outputs.is_release == 'yes' }}
+          provenance: false
+          platforms: ${{ env.PLATFORMS }}
+          tags: ${{ steps.prep.outputs.tags }}
+          build-args: |
+            DOCKER_IMAGE_VERSION=${{ steps.prep.outputs.label_version }}
+          cache-from: type=gha,scope=${{ env.DOCKER_IMAGE_NAME }}
+          cache-to: type=gha,mode=max,scope=${{ env.DOCKER_IMAGE_NAME }}
+
+      - name: Inspect
+        if: ${{ steps.prep.outputs.is_release == 'yes' }}
+        run: |
+          docker buildx imagetools inspect ${{ env.DOCKER_IMAGE_NAME }}:${{ steps.prep.outputs.version }}
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        if: ${{ steps.prep.outputs.release_type == 'standard' }}
+
+      - name: Dockerhub description
+        if: ${{ steps.prep.outputs.release_type == 'standard' }}
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          repository: ${{ env.DOCKER_IMAGE_NAME }}
+          readme-filepath: DOCKERHUB.md
+
+  notification:
+    name: Notification
+    needs: [ build ]
+    runs-on: ubuntu-20.04
+    if: ${{ always() && github.event_name != 'pull_request' }}
+
+    steps:
+      - name: Pushover notification
+        uses: desiderati/github-action-pushover@v1
+        with:
+          job-status: ${{ needs.build.result }}
+          pushover-api-token: ${{ secrets.PUSHOVER_API_TOKEN }}
+          pushover-user-key: ${{ secrets.PUSHOVER_USER_KEY }}
